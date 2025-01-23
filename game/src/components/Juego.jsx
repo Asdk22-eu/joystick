@@ -1,6 +1,8 @@
+import axios  from 'axios';
 import React, { useState, useEffect } from 'react';
 import './juego.css';
 import { enviarDatosJuego } from '../services/api';
+import { use } from 'react';
 
 function Juego() {
   const [colores, setColores] = useState(['rojo', 'amarillo', 'verde', 'azul']);
@@ -8,6 +10,17 @@ function Juego() {
   const [posicionCanasta, setPosicionCanasta] = useState(0); // Posición inicial
   const [vidas, setVidas] = useState(3);
   const [puntos, setPuntos] = useState(0);
+  const [inicioTiempo, setInicioTiempo] = useState(Date.now());
+
+  //Generar el contador del tiempo de la ronda
+   useEffect(()=> {
+    setInicioTiempo(Date.now());
+   }, []);
+
+  const calcularTiempoTranscurrido = () => {
+    const tiempoActual = Date.now();
+    return Math.floor((tiempoActual-inicioTiempo)/1000);
+  }
 
   // Generar color objetivo al iniciar
   useEffect(() => {
@@ -58,6 +71,7 @@ function Juego() {
 
     if (vidas === 1) {
       alert('Juego terminado. Puntos totales: ' + puntos);
+      manejarFinDeRonda();
       reiniciarJuego();
     }
   };
@@ -73,12 +87,21 @@ function Juego() {
   const manejarFinDeRonda = async () => {
     const datos = {
       puntaje: puntos,
-      tiempo: TiempoTranscrurrido,
+      tiempo: calcularTiempoTranscurrido(),  // Implementa una función para obtener el tiempo
       vidas: vidas,
     };
-    const nivelSugerido = await enviarDatosJuego(datos);
-    console.log('Muevo nivel sugerido: ', nivelSugerido);
+  
+    try {
+      const nivelSugerido = await enviarDatosJuego(datos);
+      console.log('Nivel sugerido por el sistema:', nivelSugerido);
+  
+      // Aquí podrías actualizar el estado para mostrar el nivel sugerido en la UI
+      alert(`Nivel sugerido: ${nivelSugerido}`);
+    } catch (error) {
+      console.error('Error al obtener la predicción:', error);
+    }
   };
+  
 
   return (
     <div className="juego">
