@@ -1,0 +1,101 @@
+.juego {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #a4de02;
+    font-family: Arial, sans-serif;
+  }
+  
+  .info {
+    display: flex;
+    justify-content: space-between;
+    width: 90%;
+    margin-bottom: 20px;
+  }
+  
+  .vidas,
+  .puntos {
+    font-size: 20px;
+    font-weight: bold;
+  }
+  
+  .indicador-color {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .color-muestra {
+    font-size: 24px;
+    font-weight: bold;
+    padding: 10px 20px;
+    border: 2px solid black;
+    margin-top: 10px;
+    border-radius: 10px;
+  }
+  
+  .contenedor-colores {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+  
+  .color {
+    width: 60px;
+    height: 60px;
+    margin: 0 10px;
+    border-radius: 50%;
+    border: 2px solid black;
+  }
+  
+  .rojo {
+    background-color: #e74c3c;
+  }
+  
+  .amarillo {
+    background-color: #f1c40f;
+  }
+  
+  .verde {
+    background-color: #2ecc71;
+  }
+  
+  .azul {
+    background-color: #3498db;
+  }
+  
+  .seleccionado {
+    border: 4px solid #000;
+  }
+  
+  .canasta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  
+  .cesta {
+    width: 80px;
+    height: 50px;
+    background-color: #d2b48c;
+    border: 2px solid black;
+    border-radius: 10px;
+    margin: 0 20px;
+  }
+  
+  .confirmar {
+    padding: 10px 20px;
+    font-size: 18px;
+    background-color: #f39c12;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .confirmar:hover {
+    background-color: #e67e22;
+  }
+  
