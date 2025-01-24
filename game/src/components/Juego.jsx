@@ -5,13 +5,12 @@ import './juego.css';
 function Juego() {
   const [colores, setColores] = useState(['rojo', 'amarillo', 'verde', 'azul']);
   const [colorObjetivo, setColorObjetivo] = useState('');
-  const [posicionCanasta, setPosicionCanasta] = useState(0); // Posición inicial
+  const [posicionCanasta, setPosicionCanasta] = useState(0);
   const [vidas, setVidas] = useState(3);
   const [puntos, setPuntos] = useState(0);
   const [nivel, setNivel] = useState(1);  // Nivel del juego
   const [inicioTiempo, setInicioTiempo] = useState(Date.now());
 
-  // Generar el contador del tiempo de la ronda
   useEffect(() => {
     setInicioTiempo(Date.now());
   }, []);
@@ -21,16 +20,19 @@ function Juego() {
     return Math.floor((tiempoActual - inicioTiempo) / 1000);
   };
 
-  // Generar color objetivo al iniciar
   useEffect(() => {
     generarColorObjetivo();
   }, []);
 
-  // Escuchar la tecla espacio para confirmar
+  const generarColorObjetivo = () => {
+    const randomColor = colores[Math.floor(Math.random() * colores.length)];
+    setColorObjetivo(randomColor);
+  };
+
   useEffect(() => {
     const manejarTecla = (evento) => {
       if (evento.code === 'Space') {
-        evento.preventDefault(); // Evitar que la página se desplace
+        evento.preventDefault();
         confirmarSeleccion();
       } else if (evento.code === 'ArrowLeft') {
         moverCanasta('izquierda');
@@ -41,16 +43,10 @@ function Juego() {
 
     window.addEventListener('keydown', manejarTecla);
 
-    // Limpieza del evento al desmontar el componente
     return () => {
       window.removeEventListener('keydown', manejarTecla);
     };
   }, [posicionCanasta, vidas, puntos, colorObjetivo]);
-
-  const generarColorObjetivo = () => {
-    const randomColor = colores[Math.floor(Math.random() * colores.length)];
-    setColorObjetivo(randomColor);
-  };
 
   const moverCanasta = (direccion) => {
     if (direccion === 'izquierda' && posicionCanasta > 0) {
@@ -83,7 +79,6 @@ function Juego() {
     generarColorObjetivo();
   };
 
-  // Enviar datos a la API Flask para obtener el nivel sugerido
   const manejarFinDeRonda = async () => {
     const datos = {
       puntaje: puntos,
@@ -92,7 +87,6 @@ function Juego() {
     };
     
     console.log("Datos enviados a la API:", datos);
-
 
     try {
       const response = await axios.post('http://127.0.0.1:5000/predecir', datos);
@@ -107,12 +101,11 @@ function Juego() {
     }
   };
 
-  // Ajustar la dificultad en base al nivel predicho
   const ajustarDificultad = (nivelPredicho) => {
     if (nivelPredicho > nivel) {
-      setColores([...colores, 'morado', 'naranja']); // Agregar más colores para mayor dificultad
+      setColores([...colores, 'morado', 'naranja']);
     } else if (nivelPredicho < nivel) {
-      setColores(['rojo', 'amarillo', 'verde', 'azul']); // Reducir dificultad si el nivel baja
+      setColores(['rojo', 'amarillo', 'verde', 'azul']);
     }
   };
 
@@ -126,7 +119,9 @@ function Juego() {
 
       <div className="indicador-color">
         <p>Selecciona el color:</p>
-        <div className={`color-muestra ${colorObjetivo}`}>{colorObjetivo.toUpperCase()}</div>
+        <div className={`color-muestra ${colorObjetivo}`}>
+          {colorObjetivo.toUpperCase()}
+        </div>
       </div>
 
       <div className="contenedor-colores">

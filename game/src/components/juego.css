@@ -64,6 +64,13 @@
   .azul {
     background-color: #3498db;
   }
+
+  .morado {
+    background-color: #ad25e8;
+  }
+  .naranja {
+    background-color: #faa11d;
+  }
   
   .seleccionado {
     border: 4px solid #000;
