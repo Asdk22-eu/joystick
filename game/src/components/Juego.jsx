@@ -1,8 +1,6 @@
-import axios  from 'axios';
+import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import './juego.css';
-import { enviarDatosJuego } from '../services/api';
-import { use } from 'react';
 
 function Juego() {
   const [colores, setColores] = useState(['rojo', 'amarillo', 'verde', 'azul']);
@@ -10,17 +8,18 @@ function Juego() {
   const [posicionCanasta, setPosicionCanasta] = useState(0); // Posición inicial
   const [vidas, setVidas] = useState(3);
   const [puntos, setPuntos] = useState(0);
+  const [nivel, setNivel] = useState(1);  // Nivel del juego
   const [inicioTiempo, setInicioTiempo] = useState(Date.now());
 
-  //Generar el contador del tiempo de la ronda
-   useEffect(()=> {
+  // Generar el contador del tiempo de la ronda
+  useEffect(() => {
     setInicioTiempo(Date.now());
-   }, []);
+  }, []);
 
   const calcularTiempoTranscurrido = () => {
     const tiempoActual = Date.now();
-    return Math.floor((tiempoActual-inicioTiempo)/1000);
-  }
+    return Math.floor((tiempoActual - inicioTiempo) / 1000);
+  };
 
   // Generar color objetivo al iniciar
   useEffect(() => {
@@ -80,34 +79,49 @@ function Juego() {
     setVidas(3);
     setPuntos(0);
     setPosicionCanasta(0);
+    setNivel(1);
     generarColorObjetivo();
   };
 
-  //Enviar datos api
+  // Enviar datos a la API Flask para obtener el nivel sugerido
   const manejarFinDeRonda = async () => {
     const datos = {
       puntaje: puntos,
-      tiempo: calcularTiempoTranscurrido(),  // Implementa una función para obtener el tiempo
+      tiempo: calcularTiempoTranscurrido(),
       vidas: vidas,
     };
-  
+    
+    console.log("Datos enviados a la API:", datos);
+
+
     try {
-      const nivelSugerido = await enviarDatosJuego(datos);
-      console.log('Nivel sugerido por el sistema:', nivelSugerido);
-  
-      // Aquí podrías actualizar el estado para mostrar el nivel sugerido en la UI
-      alert(`Nivel sugerido: ${nivelSugerido}`);
+      const response = await axios.post('http://127.0.0.1:5000/predecir', datos);
+      const nivelPredicho = response.data.nivel_predicho;
+      setNivel(nivelPredicho);
+
+      alert(`Nivel sugerido: ${nivelPredicho}`);
+      ajustarDificultad(nivelPredicho);
     } catch (error) {
       console.error('Error al obtener la predicción:', error);
+      alert('No se pudo obtener la predicción del nivel.');
     }
   };
-  
+
+  // Ajustar la dificultad en base al nivel predicho
+  const ajustarDificultad = (nivelPredicho) => {
+    if (nivelPredicho > nivel) {
+      setColores([...colores, 'morado', 'naranja']); // Agregar más colores para mayor dificultad
+    } else if (nivelPredicho < nivel) {
+      setColores(['rojo', 'amarillo', 'verde', 'azul']); // Reducir dificultad si el nivel baja
+    }
+  };
 
   return (
     <div className="juego">
       <div className="info">
         <div className="vidas">Vidas: {vidas}</div>
         <div className="puntos">Puntos: {puntos}</div>
+        <div className="nivel">Nivel: {nivel}</div>
       </div>
 
       <div className="indicador-color">
@@ -119,9 +133,7 @@ function Juego() {
         {colores.map((color, index) => (
           <div
             key={index}
-            className={`color ${color} ${
-              posicionCanasta === index ? 'seleccionado' : ''
-            }`}
+            className={`color ${color} ${posicionCanasta === index ? 'seleccionado' : ''}`}
           ></div>
         ))}
       </div>
