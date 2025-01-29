@@ -135,7 +135,7 @@ function Juego() {
 
       <div className="canasta">
         <button onClick={() => moverCanasta('izquierda')}>←</button>
-        <div className="cesta"></div>
+        
         <button onClick={() => moverCanasta('derecha')}>→</button>
       </div>
 

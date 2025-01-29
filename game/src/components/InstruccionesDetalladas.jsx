@@ -33,7 +33,7 @@ const InstruccionesDetalladas = ({ volverInicio, irAJuego }) => {
         </div>
 
         <button className="btn-volver" onClick={volverInicio}>⬅ Volver</button>
-        <button className="btn-siguiente" onClick={irAJuego}>➡ Siguiente</button>
+        <button className="btn-siguiente" onClick={irAJuego}> Siguiente ➡</button>
       </div>
     </div>
   );
