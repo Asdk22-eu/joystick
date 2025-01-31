@@ -8,29 +8,31 @@ function Juego() {
   const [posicionCanasta, setPosicionCanasta] = useState(0);
   const [vidas, setVidas] = useState(3);
   const [puntos, setPuntos] = useState(0);
-  const [nivel, setNivel] = useState(1);  // Nivel del juego
+  const [nivel, setNivel] = useState(1);
+  const [modoIA, setModoIA] = useState(false); // false = modo manual, true = modo IA
   const [inicioTiempo, setInicioTiempo] = useState(Date.now());
+  const [pausado, setPausado] = useState(false);
+  const [tiempoJugado, setTiempoJugado] = useState(0);
 
   useEffect(() => {
     setInicioTiempo(Date.now());
+    generarColorObjetivo();
   }, []);
 
   const calcularTiempoTranscurrido = () => {
-    const tiempoActual = Date.now();
-    return Math.floor((tiempoActual - inicioTiempo) / 1000);
+    return Math.floor((Date.now() - inicioTiempo) / 1000);
   };
-
-  useEffect(() => {
-    generarColorObjetivo();
-  }, []);
 
   const generarColorObjetivo = () => {
     const randomColor = colores[Math.floor(Math.random() * colores.length)];
     setColorObjetivo(randomColor);
   };
-
+//funcionalidad del juego
   useEffect(() => {
     const manejarTecla = (evento) => {
+      if(evento.code == 'Escape'){
+        togglePausa();
+      }
       if (evento.code === 'Space') {
         evento.preventDefault();
         confirmarSeleccion();
@@ -40,12 +42,8 @@ function Juego() {
         moverCanasta('derecha');
       }
     };
-
     window.addEventListener('keydown', manejarTecla);
-
-    return () => {
-      window.removeEventListener('keydown', manejarTecla);
-    };
+    return () => window.removeEventListener('keydown', manejarTecla);
   }, [posicionCanasta, vidas, puntos, colorObjetivo]);
 
   const moverCanasta = (direccion) => {
@@ -58,10 +56,10 @@ function Juego() {
 
   const confirmarSeleccion = () => {
     if (colores[posicionCanasta] === colorObjetivo) {
-      setPuntos((prevPuntos) => prevPuntos + 1);
+      setPuntos(puntos + 1);
       generarColorObjetivo();
     } else {
-      setVidas((prevVidas) => prevVidas - 1);
+      setVidas(vidas - 1);
     }
 
     if (vidas === 1) {
@@ -85,19 +83,20 @@ function Juego() {
       tiempo: calcularTiempoTranscurrido(),
       vidas: vidas,
     };
-    
-    console.log("Datos enviados a la API:", datos);
 
-    try {
-      const response = await axios.post('http://127.0.0.1:5000/predecir', datos);
-      const nivelPredicho = response.data.nivel_predicho;
-      setNivel(nivelPredicho);
-
-      alert(`Nivel sugerido: ${nivelPredicho}`);
-      ajustarDificultad(nivelPredicho);
-    } catch (error) {
-      console.error('Error al obtener la predicción:', error);
-      alert('No se pudo obtener la predicción del nivel.');
+    if (!modoIA) {
+      guardarDatosLocalmente(datos);
+    } else {
+      try {
+        const response = await axios.post('http://127.0.0.1:5000/predecir', datos);
+        const nivelPredicho = response.data.nivel_predicho;
+        setNivel(nivelPredicho);
+        alert(`Nivel sugerido: ${nivelPredicho}`);
+        ajustarDificultad(nivelPredicho);
+      } catch (error) {
+        console.error('Error al obtener la predicción:', error);
+        alert('No se pudo obtener la predicción del nivel.');
+      }
     }
   };
 
@@ -106,6 +105,28 @@ function Juego() {
       setColores([...colores, 'morado', 'naranja']);
     } else if (nivelPredicho < nivel) {
       setColores(['rojo', 'amarillo', 'verde', 'azul']);
+    }
+  };
+
+  const guardarDatosLocalmente = (datos) => {
+    const datosPrevios = JSON.parse(localStorage.getItem('datosJuego')) || [];
+    datosPrevios.push(datos);
+    localStorage.setItem('datosJuego', JSON.stringify(datosPrevios));
+    alert('Datos guardados localmente.');
+  };
+
+  const alternarModoIA = () => {
+    setModoIA(!modoIA);
+  };
+  //juego pausado.
+  const togglePausa = () => {
+    setPausado(!pausado);
+  };
+
+  const salirJuego = () => {
+    const confirmar = window.confirm('¿Estás seguro que deseas salir del juego?');
+    if (confirmar) {
+      window.location.href = '/';
     }
   };
 
@@ -119,9 +140,7 @@ function Juego() {
 
       <div className="indicador-color">
         <p>Selecciona el color:</p>
-        <div className={`color-muestra ${colorObjetivo}`}>
-          {colorObjetivo.toUpperCase()}
-        </div>
+        <div className={`color-muestra ${colorObjetivo}`}>{colorObjetivo.toUpperCase()}</div>
       </div>
 
       <div className="contenedor-colores">
@@ -135,13 +154,54 @@ function Juego() {
 
       <div className="canasta">
         <button onClick={() => moverCanasta('izquierda')}>←</button>
-        
         <button onClick={() => moverCanasta('derecha')}>→</button>
       </div>
 
-      <button className="confirmar" onClick={confirmarSeleccion}>
-        Confirmar (Espacio)
-      </button>
+      <div className='botones-contenedor'>
+          <button className="confirmar" onClick={confirmarSeleccion}>
+            Confirmar
+          </button>
+
+          <button className={`modo-ia ${modoIA ? 'activo' : 'inactivo'}`} onClick={alternarModoIA}>
+            {modoIA ? 'Con IA' : 'Sin IA'}
+          </button>
+
+          <button className='boton-pausa' onClick={togglePausa}>
+            Pausar
+          </button>
+      </div>
+
+      
+      
+      {pausado && (
+        <div className="modal-pausa">
+          <div className="modal-contenido">
+            <h2>Juego Pausado</h2>
+            
+            <div className="resumen-juego">
+              <h3>Resumen del Juego</h3>
+              <p>Puntos conseguidos: {puntos}</p>
+              <p>Nivel actual: {nivel}</p>
+              <p>Vidas restantes: {vidas}</p>
+              <p>Tiempo jugado: {tiempoJugado} segundos</p>
+              <p>Modo: {modoIA ? 'IA' : 'Manual'}</p>
+            </div>
+
+            <div className="botones-pausa">
+              <button className="boton-reanudar" onClick={togglePausa}>
+                Reanudar Juego
+              </button>
+              <button className="boton-reiniciar" onClick={reiniciarJuego}>
+                Reiniciar Juego
+              </button>
+              <button className="boton-salir" onClick={salirJuego}>
+                Salir del Juego
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
