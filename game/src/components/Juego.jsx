@@ -1,6 +1,7 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import './juego.css';
+import MusicaFondo from './MusicaFondo';
 
 function Juego() {
   const [colores, setColores] = useState(['rojo', 'amarillo', 'verde', 'azul']);
@@ -180,25 +181,28 @@ function Juego() {
             
             <div className="resumen-juego">
               <h3>Resumen del Juego</h3>
-              <p>Puntos conseguidos: {puntos}</p>
-              <p>Nivel actual: {nivel}</p>
-              <p>Vidas restantes: {vidas}</p>
-              <p>Tiempo jugado: {tiempoJugado} segundos</p>
+              <p>Puntos conseguidos 🏆: {puntos}</p>
+              <p>Nivel actual ⭐: {nivel}</p>
+              <p>Vidas restantes ❤️: {vidas}</p>
               <p>Modo: {modoIA ? 'IA' : 'Manual'}</p>
             </div>
+            
 
             <div className="botones-pausa">
               <button className="boton-reanudar" onClick={togglePausa}>
                 Reanudar Juego
-              </button>
+              </button> 
               <button className="boton-reiniciar" onClick={reiniciarJuego}>
                 Reiniciar Juego
               </button>
               <button className="boton-salir" onClick={salirJuego}>
                 Salir del Juego
               </button>
+              <MusicaFondo/>
             </div>
+         
           </div>
+          
         </div>
       )}
 

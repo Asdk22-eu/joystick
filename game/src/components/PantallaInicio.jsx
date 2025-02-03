@@ -1,4 +1,5 @@
 import React from 'react';
+import miImagen from '../assets/cesped.png';
 
 const PantallaInicio = ({ comenzarJuego }) => {
   return (

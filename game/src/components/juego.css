@@ -6,6 +6,10 @@
   min-height: 100vh;
   color: rgb(0, 0, 0);
   font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+
+  background-image: url('../src/assets/cesped.png');
+  background-size:contain;
+
 }
 
 .info {
@@ -225,3 +229,4 @@
 .boton-salir { background: #f44336; color: white; }
 
 /*Fin Efecto pop up para boton de pausa*/
+

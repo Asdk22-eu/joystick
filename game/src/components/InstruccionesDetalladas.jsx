@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import './InstruccionesDetalladas.css'
+import MusicaFondo from './MusicaFondo';
+import ReyJulien from '../assets/ReyJulien.png'
+
 
 const InstruccionesDetalladas = ({ volverInicio, irAJuego }) => {
   const [audioActivo, setAudioActivo] = useState(true);
-  const [audio] = useState(new Audio('/audios/instruccion1.mp3'));
+  const audioRef = useRef(new Audio('/instrucciones.mp3'));
+  const [isPlaying, setIsPlaying] = useState(false);
+  
 
   const reproducirAudio = () => {
     if (audioActivo) {
@@ -10,7 +16,26 @@ const InstruccionesDetalladas = ({ volverInicio, irAJuego }) => {
     }
   };
 
+
+
+  useEffect(()=>{
+    const audio =audioRef.current;
+    audio.volume = 0.5;
+    audio.loop = false;
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+
+  },[]);
+
   const alternarAudio = () => {
+    const audio = audioRef.current;
+    if(audioActivo){
+      audio.pause();
+    }else{
+      audio.play().catch(err => console.error('Error al reproducir audio: ', err));
+    }
     setAudioActivo(!audioActivo);
   };
 
@@ -26,10 +51,10 @@ const InstruccionesDetalladas = ({ volverInicio, irAJuego }) => {
         </ul>
 
         <div className="botones-audio">
-          <button onClick={reproducirAudio}>🔊 Reproducir Audio</button>
           <button onClick={alternarAudio}>
-            {audioActivo ? '🔈 Silenciar' : '🔇 Activar Sonido'}
+            {audioActivo ? '🔇 Parar Instrucciones' : ' 🔈Reproducir Instrucciones'}
           </button>
+          <MusicaFondo/>
         </div>
 
         <button className="btn-volver" onClick={volverInicio}>⬅ Volver</button>
