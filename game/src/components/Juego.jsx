@@ -16,6 +16,7 @@
     const [pausado, setPausado] = useState(false);
     const [tiempoJugado, setTiempoJugado] = useState(0);
     const [alerta, setAlerta] = useState({visible: false, mensaje: ''});
+    const audioError = new Audio(errorSound); 
 
     useEffect(() => {
       setInicioTiempo(Date.now());
@@ -67,13 +68,18 @@
       }
     };
 
+    const reproducirError = () => {
+      audioError.currentTime = 0; // Reinicia el audio si ya se estaba reproduciendo
+      audioError.play().catch(err => console.error("Error al reproducir sonido:", err));
+    };
+
     const confirmarSeleccion = () => {
       if (colores[posicionCanasta] === colorObjetivo) {
         setPuntos(puntos + 1);
         generarColorObjetivo();
       } else {
         setVidas(vidas - 1);
-        new Audio(errorSound).play();
+        reproducirError();
       }
 
       if (vidas === 1) {
