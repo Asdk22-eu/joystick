@@ -1,5 +1,6 @@
-.pantalla-instrucciones{
-    background-image: url('../src/assets/cesped.png');
-    background-size:contain;
-
+.pantalla-instrucciones {
+    background-image: url('../src/assets/ReyJulien.png');
+    background-size: contain; /* Ajusta el tamaño sin recortar */
+    background-repeat: no-repeat; /* Evita que la imagen se repita */
+    background-position: bottom right; /* Ubica la imagen en la esquina inferior derecha */
 }
