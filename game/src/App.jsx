@@ -1,42 +1,45 @@
-  import { useState } from 'react';
-  import InstruccionesDetalladas from './components/InstruccionesDetalladas';
-  import Juego from './components/Juego';
-  import MusicaFondo from './components/MusicaFondo';
-  import './index.css';
+import { useState, useEffect } from 'react';
+import InstruccionesDetalladas from './components/InstruccionesDetalladas';
+import Juego from './components/Juego';
+import JoystickProvider from "./context/JoystickContext";
+import MusicaFondo from './components/MusicaFondo';
 import { MusicaProvider } from './components/MusicaContext';
-  function App() {
-    const [pantalla, setPantalla] = useState('inicio');
+import './index.css';
 
-    const irAInstrucciones = () => setPantalla('instrucciones');
-    const irAJuego = () => setPantalla('juego');
-    const volverInicio = () => setPantalla('inicio');
+function App() {
+  const [pantalla, setPantalla] = useState('inicio');
 
-    return (
-      <MusicaProvider>
-      <div>
-        {pantalla === 'inicio' && (
-          <div className="pantalla-inicio"> 
-            <div className="contenedor-titulo">
-              <h1 className="titulo-juego">COLORFALL</h1>
-              <button className="btn-play" onClick={irAInstrucciones}>PLAY</button>
+  useEffect(() => {
+    console.log("Pantalla actual:", pantalla); // 🔥 Depuración: Verificar si la pantalla cambia
+  }, [pantalla]);
+
+  return (
+    <MusicaProvider>
+      <JoystickProvider>
+        <div>
+          {pantalla === 'inicio' && (
+            <div className="pantalla-inicio">
+              <div className="contenedor-titulo">
+                <h1 className="titulo-juego">COLORFALL</h1>
+                <button className="btn-play" onClick={() => setPantalla('instrucciones')}>
+                  PLAY
+                </button>
+              </div>
             </div>
-           
-             
-          </div>
-        )}
+          )}
 
-        {pantalla === 'instrucciones' && (
-          <InstruccionesDetalladas 
-            volverInicio={volverInicio} 
-            irAJuego={irAJuego} 
-          />
-        )}
+          {pantalla === 'instrucciones' && (
+            <InstruccionesDetalladas 
+              volverInicio={() => setPantalla('inicio')}
+              irAJuego={() => setPantalla('juego')} 
+            />
+          )}
 
-        {pantalla === 'juego' && <Juego />}
-      </div>
-      </MusicaProvider>
+          {pantalla === 'juego' && <Juego />}
+        </div>
+      </JoystickProvider>
+    </MusicaProvider>
+  );
+}
 
-    );
-  }
-
-  export default App;
+export default App;
