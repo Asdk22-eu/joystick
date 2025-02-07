@@ -1,3 +1,24 @@
+from pymongo import MongoClient
+from datetime import datetime
+
+class MongoDB:
+    def __init__(self):
+        # Connect to MongoDB (adjust the connection string as needed)
+        self.client = MongoClient('mongodb://localhost:27017/')
+        self.db = self.client['game_db']
+        self.collection = self.db['player_history']
+
+    def save_game_data(self, data):
+        """Save game data with timestamp"""
+        data['timestamp'] = datetime.utcnow()
+        return self.collection.insert_one(data)
+
+    def get_all_data(self):
+        """Retrieve all game data for training"""
+        return list(self.collection.find({}, {'_id': 0}))
+    
+
+
 from flask import Flask, request, jsonify
 import pandas as pd
 import os
@@ -9,13 +30,12 @@ import joblib
 app = Flask(__name__)
 CORS(app)
 
+db = MongoDB()
+
 @app.route('/')
 def home():
     return "Bienvenido a la API"
 
-@app.route('/prediccion')
-def prediccion():
-    return "Aquí se manejarán las predicciones"
 # Ruta del archivo CSV
 ruta_csv = r"D:\Universidad\7-Septimo\Interaccion Humano Computador\Proyecto TOTAL\Game\dataset\historial_jugadores.csv"
 
@@ -31,8 +51,7 @@ def guardar_datos():
         return jsonify({"error": "Faltan datos requeridos"}), 400
     
     try:
-        nuevo_dato = pd.DataFrame([datos])
-        nuevo_dato.to_csv(ruta_csv, mode='a', header=False, index=False)
+        db.save_game_data(datos)
         return jsonify({"mensaje": "Datos guardados correctamente"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -64,7 +83,5 @@ def predecir():
         return jsonify({"error": str(e)}), 500
 
 
-
 if __name__ == '__main__':
     app.run(debug=True)
-    

@@ -17,11 +17,32 @@ function Juego() {
   const [juegoTerminado, setJuegoTerminado] = useState(false);
   const [botonPresionado, setBotonPresionado] = useState(false);
   const audioError = new Audio(errorSound);
+  const [modoIA, setModoIA] = useState(false);
+  const [inicioTiempo, setInicioTiempo] = useState(Date.now());
+  const [pausado, setPausado] = useState(false);
 
   useEffect(() => {
+    setInicioTiempo(Date.now());
     console.log("🔥 Juego montado correctamente");
     generarColorObjetivo();
   }, []);
+
+  const guardarDatosEnMongoDB = async (datos) => {
+    try {
+      await axios.post('http://127.0.0.1:5000/guardar_datos', {
+        ...datos,
+        nivel: nivel
+      });
+      mostrarAlerta('Datos guardados en la base de datos');
+    } catch (error) {
+      console.error('Error al guardar datos:', error);
+      mostrarAlerta('Error al guardar los datos en la base de datos');
+    }
+  };
+  
+  const calcularTiempoTranscurrido = () => {
+    return Math.floor((Date.now() - inicioTiempo) / 1000);
+  };
 
   const generarColorObjetivo = () => {
     const randomColor = colores[Math.floor(Math.random() * colores.length)];
@@ -68,6 +89,32 @@ function Juego() {
     });
   };
 
+  const manejarFinDeRonda = async () => {
+
+    const datos = {
+      puntaje: puntos,
+      tiempo: calcularTiempoTranscurrido(),
+      vidas: vidas,
+    };
+
+    if (!modoIA) {
+      await guardarDatosEnMongoDB(datos);
+      console.log("Enviando datos:", datos);
+    } else {
+      try {
+        const response = await axios.post('http://127.0.0.1:5000/predecir', datos);
+        const nivelPredicho = response.data.nivel_predicho;
+        setNivel(nivelPredicho);
+        mostrarAlerta(`Nivel sugerido: ${nivelPredicho}`);
+        ajustarDificultad(nivelPredicho);
+      } catch (error) {
+        console.error('Error al obtener la predicción:', error);
+        mostrarAlerta('No se pudo obtener la predicción del nivel.');
+      }
+    }
+  };
+
+
   const confirmarSeleccion = () => {
     console.log(`🎯 Intento con color: ${colores[posicionCanasta]}, Objetivo: ${colorObjetivo}`);
 
@@ -84,6 +131,7 @@ function Juego() {
           return prev - 1;
         } else {
           setJuegoTerminado(true);
+          manejarFinDeRonda();
           mostrarAlerta(`🛑 Juego terminado. Puntos totales: ${puntos}`);
           return 0;
         }
@@ -105,6 +153,38 @@ function Juego() {
     setPosicionCanasta(0);
     setNivel(1);
     generarColorObjetivo();
+  };
+
+
+
+  const ajustarDificultad = (nivelPredicho) => {
+    if (nivelPredicho > nivel) {
+      setColores([...colores, 'morado', 'naranja']);
+    } else if (nivelPredicho < nivel) {
+      setColores(['rojo', 'amarillo', 'verde', 'azul']);
+    }
+  };
+
+  const guardarDatosLocalmente = (datos) => {
+    const datosPrevios = JSON.parse(localStorage.getItem('datosJuego')) || [];
+    datosPrevios.push(datos);
+    localStorage.setItem('datosJuego', JSON.stringify(datosPrevios));
+    mostrarAlerta('Datos guardados localmente.');
+  };
+
+  const alternarModoIA = () => {
+    setModoIA(!modoIA);
+  };
+  //juego pausado.
+  const togglePausa = () => {
+    setPausado(!pausado);
+  };
+
+  const salirJuego = () => {
+    const confirmar = window.confirm('¿Estás seguro que deseas salir del juego?');
+    if (confirmar) {
+      window.location.href = '/';
+    }
   };
 
   return (
@@ -140,26 +220,59 @@ function Juego() {
         <button className="confirmar" onClick={confirmarSeleccion} disabled={juegoTerminado}>
           ✅ Confirmar
         </button>
-        <button className="botonia">
-              Con Ia
-            </button>
-        <button className='boton-pausa' >
+        <button className={`modo-ia ${modoIA ? 'activo' : 'inactivo'}`} onClick={alternarModoIA}>
+              {modoIA ? 'Con IA' : 'Sin IA'}
+        </button>
+
+        <button className='boton-pausa' onClick={togglePausa}>
               Pausar
             </button>
         
       </div>
 
-      {alerta.visible && (
-        <div className="modal-alerta">
-          <div className="modal-contenido">
-            <h2>Mensaje</h2>
-            <p>{alerta.mensaje}</p>
-            <button className="boton-cerrar" onClick={cerrarAlerta}>
-              Cerrar
-            </button>
+      {pausado && (
+          <div className="modal-pausa">
+            <div className="modal-contenido">
+              <h2>Juego Pausado</h2>
+              
+              <div className="resumen-juego">
+                <h3>Resumen del Juego</h3>
+                <p>Puntos conseguidos 🏆: {puntos}</p>
+                <p>Nivel actual ⭐: {nivel}</p>
+                <p>Vidas restantes ❤️: {vidas}</p>
+                <p>Modo: {modoIA ? 'IA' : 'Manual'}</p>
+              </div>
+              
+
+              <div className="botones-pausa">
+                <button className="boton-reanudar" onClick={togglePausa}>
+                  Reanudar Juego
+                </button> 
+                <button className="boton-reiniciar" onClick={reiniciarJuego}>
+                  Reiniciar Juego
+                </button>
+                <button className="boton-salir" onClick={salirJuego}>
+                  Salir del Juego
+                </button>
+                <MusicaFondo/>
+              </div>
+          
+            </div>
+            
           </div>
-        </div>
-      )}
+        )}
+
+      {alerta.visible && (
+          <div className="modal-alerta">
+            <div className="modal-contenido">
+              <h2>Mensaje</h2>
+              <p>{alerta.mensaje}</p>
+              <button className="boton-cerrar" onClick={cerrarAlerta}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        )}
     </div>
   );
 }
